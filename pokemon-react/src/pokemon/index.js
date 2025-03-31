@@ -25,12 +25,12 @@ const Index = () => {
            
           })
           .catch((error) => {
-            console.error('Error fetching Pokémon data', error);
+            console.error('Error al traer los datos de pokemon', error);
            
           });
       })
       .catch((error) => {
-        console.error('Error fetching Pokémon list', error);
+        console.error('Se produjo un error en el listado de Pokemon', error);
        
       });
   }, []);
@@ -49,6 +49,10 @@ const Index = () => {
               alt={poke.name}
               className="pokemon-image"
             />
+
+                <button class="compartir" ><i class='fa fa-share-alt' aria-hidden='true'></i></button>
+                <button class="descripcion"><i class='fa fa-binoculars' aria-hidden='true'></i></button>
+                <button class="favoritos"><i class='fa fa-heart' aria-hidden='true'></i></button>
 
             <h3>{poke.name.charAt(0).toUpperCase() + poke.name.slice(1)}</h3>
             <div className="pokemon-types">
