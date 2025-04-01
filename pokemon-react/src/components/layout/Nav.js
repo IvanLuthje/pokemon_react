@@ -2,20 +2,25 @@ import React from 'react';
 import { Link } from "react-router-dom";
 import '../../css/styles.css'
 
-const Nav =() => {
+const Nav = (props) => {
+
+  
     return(
-        <nav>
-            <ul class="menu">
-            <li>Inicio</li>
-            <li>Pokedex</li>
-            {/* <li><a href="pokedex.html">Pokedex</a></li>
-            <li><a href="historial.html">Historial</a></li>
-            <li><a href="contacto.html">Contacto</a></li>
-            <li><a href="compartir.html">Compartir</a></li> */}
-            </ul>    
-        </nav>
-     
+      <nav>
+        <div>
+        <ul class="menu">
+            <li><Link to="/">Inicio</Link></li>
+            <li><Link to="/pokedex">Pokedex</Link></li>
+            {/* <li><Link to="historial.html">Historial</Link></li> */}
+            <li><Link to="/contacto">Contacto</Link></li>
+            {/* <li><Link to="compartir.html">Compartir</Link></li> */}
+            <div class="responsive" onclick="menuBar()">
+            &#9776;
+            </div>
+        </ul>
+        </div>
+      </nav>
+    
     );
 }
-
 export default Nav;
