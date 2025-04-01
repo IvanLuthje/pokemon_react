@@ -1,0 +1,183 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+// Component for Pokémon Search
+const Pokedex = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pokemonData, setPokemonData] = useState(null);
+  const [itemData, setItemData] = useState(null);
+  const [favorites, setFavorites] = useState(() => {
+    const storedFavorites = localStorage.getItem('favorites');
+    return storedFavorites ? JSON.parse(storedFavorites) : [];
+  });
+  const [filter, setFilter] = useState('nombre');
+  const [modalData, setModalData] = useState(null);
+
+  // Handle search input change
+  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+
+  // Handle the search button click
+  const handleSearch = async () => {
+    const query = searchQuery.toLowerCase().replace(/[^a-zA-Z0-9]/g, '');
+    if (filter === 'nombre') {
+      try {
+        const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${query}`);
+        setPokemonData(response.data);
+        setItemData(null);
+      } catch (error) {
+        console.error('Pokemon not found:', error);
+      }
+    } else if (filter === 'item') {
+      try {
+        const response = await axios.get(`https://pokeapi.co/api/v2/item/${query}`);
+        setItemData(response.data);
+        setPokemonData(null);
+      } catch (error) {
+        console.error('Item not found:', error);
+      }
+    }
+  };
+
+  // Add Pokémon to favorites
+  const addToFavorites = (pokemon) => {
+    if (!favorites.some((fav) => fav.id === pokemon.id)) {
+      const newFavorites = [...favorites, pokemon];
+      setFavorites(newFavorites);
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+    }
+  };
+
+  // Remove Pokémon from favorites
+  const removeFromFavorites = (id) => {
+    const newFavorites = favorites.filter((fav) => fav.id !== id);
+    setFavorites(newFavorites);
+    localStorage.setItem('favorites', JSON.stringify(newFavorites));
+  };
+
+  // Open the modal with Pokémon or Item details
+  const openModal = (data) => setModalData(data);
+
+  // Close the modal
+  const closeModal = () => setModalData(null);
+
+  // Render Pokémon or Item details in the modal
+  const renderModalContent = () => {
+    if (!modalData) return null;
+
+    const { name, sprites, id } = modalData;
+    const image = sprites ? sprites.front_default : sprites.default;
+    const description = modalData.flavor_text || "No description available";
+    const height = modalData.height / 10;
+    const weight = modalData.weight / 10;
+
+    return (
+      <div>
+        <h3>{name.charAt(0).toUpperCase() + name.slice(1)}</h3>
+        <img src={image} alt={name} />
+        <p><strong># {id}</strong></p>
+        <p><strong>Descripción:</strong> {description}</p>
+        <p><strong>Altura:</strong> {height.toFixed(2)} m</p>
+        <p><strong>Peso:</strong> {weight} kg</p>
+        <button onClick={() => addToFavorites(modalData)}>Agregar a Favoritos</button>
+        <button onClick={closeModal}>Cerrar</button>
+      </div>
+    );
+  };
+
+  // Render Pokémon Data
+  const renderPokemonData = () => {
+    if (pokemonData) {
+      const { name, sprites, id } = pokemonData;
+      const image = sprites.front_default;
+      return (
+        <div className="pokemon-card">
+          <p><strong># {id}</strong></p>
+          <img src={image} alt={name} />
+          <h3>{name.charAt(0).toUpperCase() + name.slice(1)}</h3>
+          <button onClick={() => openModal(pokemonData)}>Ver Descripción</button>
+          <button onClick={() => addToFavorites(pokemonData)}>Agregar a Favoritos</button>
+        </div>
+      );
+    }
+    return <p>No Pokémon encontrado</p>;
+  };
+
+  // Render Item Data
+  const renderItemData = () => {
+    if (itemData) {
+      const { names, id, sprites } = itemData;
+      const image = sprites.default;
+      return (
+        <div className="pokemon-card">
+          <p><strong># {id}</strong></p>
+          <img src={image} alt={names[5].name} />
+          <h3>{names[5].name.charAt(0).toUpperCase() + names[5].name.slice(1)}</h3>
+          <button onClick={() => openModal(itemData)}>Ver Descripción</button>
+          <button onClick={() => addToFavorites(itemData)}>Agregar a Favoritos</button>
+        </div>
+      );
+    }
+    return <p>No Item encontrado</p>;
+  };
+
+  // Render Favorites
+  const renderFavorites = () => {
+    return favorites.length ? (
+      favorites.map((fav) => (
+        <div key={fav.id} className="pokemon-card">
+          <img src={fav.sprite} alt={fav.name} />
+          <h3>{fav.name.charAt(0).toUpperCase() + fav.name.slice(1)}</h3>
+          <button onClick={() => removeFromFavorites(fav.id)}>Eliminar</button>
+        </div>
+      ))
+    ) : (
+      <p>No tienes favoritos</p>
+    );
+  };
+
+  return (
+    <div>
+      <header>
+        <h1>Pokémon Pokedex</h1>
+      </header>
+
+      <nav>
+        <ul>
+          <li><button onClick={() => setFilter('nombre')}>Buscar por Nombre</button></li>
+          <li><button onClick={() => setFilter('item')}>Buscar por Item</button></li>
+        </ul>
+      </nav>
+
+      <main>
+        <div id="search-container">
+          <input
+            type="text"
+            placeholder="Ingresa el nombre o ID del Pokémon"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          <button onClick={handleSearch}>Buscar</button>
+        </div>
+
+        <div id="pokedex-info">
+          {filter === 'nombre' ? renderPokemonData() : renderItemData()}
+        </div>
+
+        <section id="favorites">
+          <h2>Favoritos</h2>
+          {renderFavorites()}
+        </section>
+
+        {modalData && (
+          <div id="modal">
+            <div className="modal-content">
+              {renderModalContent()}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default Pokedex;
